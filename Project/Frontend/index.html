@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoPulse Health and Pollution Predictor</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+
+<body>
+
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<div class="main">
+
+<div class="header-area">
+  <button id="openSidebar" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+  <h1><i class="fa-solid fa-wind" style="color: #38bdf8;"></i> EcoPulse <span style="color: #22c55e;">Health and Pollution Predictor</span></h1>
+</div>
+
+<div class="top-bar">
+  <div></div>
+  <div>
+    <button id="toggleTheme"><i class="fa-solid fa-moon"></i> Theme</button>
+    <button id="downloadBtn"><i class="fa-solid fa-download"></i> Download</button>
+    <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+  </div>
+</div>
+
+<!-- -------- SIDEBAR -------- -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h2><i class="fa-solid fa-chart-pie" style="color: #38bdf8;"></i> Dashboard</h2>
+    <span class="close-btn" id="closeSidebar">&times;</span>
+  </div>
+  <button id="showPollution" class="sidebar-btn"><i class="fa-solid fa-smog"></i> Pollution Data</button>
+  <button id="showHospital" class="sidebar-btn"><i class="fa-solid fa-hospital"></i> Hospital Data</button>
+  <button id="showModel" class="sidebar-btn"><i class="fa-solid fa-microchip"></i> How the Model Works</button>
+</div>
+
+<!-- -------- POLLUTION PAGE -------- -->
+<div id="pollutionPage">
+
+<div class="cards">
+  <div class="card"><h3><i class="fa-solid fa-chart-simple" style="color: #38bdf8;"></i> Avg AQI</h3><p id="avgAqi">--</p></div>
+  <div class="card"><h3><i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> Max AQI</h3><p id="maxAqi">--</p></div>
+</div>
+
+<div class="box">
+  <h2><i class="fa-solid fa-table-list" style="color: #22c55e;"></i> Pollution Data</h2>
+
+  <div class="filters small">
+    <select id="filterYear"></select>
+    <select id="filterMonth"></select>
+    <select id="filterDay"></select>
+    <button id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th><th>Month</th><th>Day</th><th>AQI</th><th>PM 2.5</th><th>PM 10</th><th>NO2 (ppb)</th><th>Type</th>
+        </tr>
+      </thead>
+      <tbody id="tableData"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="box">
+  <h2><i class="fa-solid fa-chart-line" style="color: #38bdf8;"></i> Pollution Components (Selected Year)</h2>
+  <div class="canvas-container">
+    <canvas id="predChart"></canvas>
+  </div>
+</div>
+
+<!-- Risks & Sources Info -->
+<div class="box" style="margin-top: 30px;">
+  <h2><i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> Why Air Pollution Matters</h2>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+    
+    <!-- Risk Paragraph -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0;">
+      <h3 style="margin-top:0; font-size: 20px; color: #ef4444;">
+        <i class="fa-solid fa-heart-pulse"></i> The Health Risks
+      </h3>
+      <p style="font-size: 16px; color:#cbd5e1; line-height: 1.6; margin-bottom:0;">
+        Air pollution is like an invisible poison. When we breathe in dirty air, tiny toxic particles travel deep into our lungs and can even enter our bloodstream. Over time, this drastically increases the chances of severe health problems like asthma attacks, heart disease, strokes, and lung cancer. It also weakens our immune system, making it much harder for our bodies to fight off everyday illnesses.
+      </p>
+    </div>
+
+    <!-- Pollutants source Paragraph -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.1s;">
+      <h3 style="margin-top:0; font-size: 20px; color: #facc15;">
+        <i class="fa-solid fa-industry"></i> &nbsp;<i class="fa-solid fa-car-side" style="color: #38bdf8;"></i> Where It Comes From
+      </h3>
+      <p style="font-size: 16px; color:#cbd5e1; line-height: 1.6; margin-bottom:0;">
+        Every day, massive factories and millions of vehicles pump harmful chemicals into the sky. Cars and trucks burn fuel and release black soot along with dangerous gases like Nitrogen Dioxide. Meanwhile, smoke from big factories and power plants releases heavy clouds of chemicals and dust that cover our cities. Together, they create the thick, toxic smog that damages our environment.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- AQI Severity Scale -->
+<div class="box" style="margin-top: 30px;">
+  <h2><i class="fa-solid fa-gauge-high" style="color:#f59e0b;"></i> Understanding AQI Severity</h2>
+  <p style="font-size: 18px; line-height: 1.6;">
+    The Air Quality Index (AQI) measures how safe the air is to breathe. Here is a simple color-coded guide to understanding the numbers:
+  </p>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 25px;">
+    
+    <!-- Good -->
+    <div class="card" style="padding: 15px; margin: 0; background: rgba(34, 197, 94, 0.2); border-left: 4px solid #22c55e;">
+      <h3 style="margin:0; font-size: 18px; color: #4ade80;">0 - 50</h3>
+      <h4 style="margin: 5px 0 10px 0; color: white;">Good</h4>
+      <p style="font-size: 14px; margin:0; line-height: 1.4;">Air quality is perfectly fine. No health impact.</p>
+    </div>
+
+    <!-- Moderate -->
+    <div class="card" style="padding: 15px; margin: 0; animation-delay: 0.1s; background: rgba(234, 179, 8, 0.2); border-left: 4px solid #eab308;">
+      <h3 style="margin:0; font-size: 18px; color: #facc15;">51 - 100</h3>
+      <h4 style="margin: 5px 0 10px 0; color: white;">Moderate</h4>
+      <p style="font-size: 14px; margin:0; line-height: 1.4;">Acceptable, but highly sensitive people should limit outdoor time.</p>
+    </div>
+
+    <!-- Unhealthy for Sensitive Groups -->
+    <div class="card" style="padding: 15px; margin: 0; animation-delay: 0.2s; background: rgba(249, 115, 22, 0.2); border-left: 4px solid #f97316;">
+      <h3 style="margin:0; font-size: 18px; color: #fb923c;">101 - 150</h3>
+      <h4 style="margin: 5px 0 10px 0; color: white;">Sensitive</h4>
+      <p style="font-size: 14px; margin:0; line-height: 1.4;">Children and elderly with lung issues may experience symptoms.</p>
+    </div>
+
+    <!-- Unhealthy -->
+    <div class="card" style="padding: 15px; margin: 0; animation-delay: 0.3s; background: rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444;">
+      <h3 style="margin:0; font-size: 18px; color: #f87171;">151 - 200</h3>
+      <h4 style="margin: 5px 0 10px 0; color: white;">Unhealthy</h4>
+      <p style="font-size: 14px; margin:0; line-height: 1.4;">General public may start feeling effects. Avoid heavy exercise.</p>
+    </div>
+
+    <!-- Severe -->
+    <div class="card" style="padding: 15px; margin: 0; animation-delay: 0.4s; background: rgba(168, 85, 247, 0.2); border-left: 4px solid #a855f7;">
+      <h3 style="margin:0; font-size: 18px; color: #c084fc;">200+</h3>
+      <h4 style="margin: 5px 0 10px 0; color: white;">Severe</h4>
+      <p style="font-size: 14px; margin:0; line-height: 1.4;">Extreme health warnings. Everyone should stay strictly indoors.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Prevention of Pollution footer -->
+<div class="box" style="margin-top: 30px;">
+  <h2><i class="fa-solid fa-leaf" style="color:#22c55e;"></i> Pollution Prevention Strategies</h2>
+  <p style="font-size: 18px; line-height: 1.6;">
+    Reducing air pollution requires community and industrial effort. Here are four key ways we can decrease daily AQI levels:
+  </p>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px;">
+    
+    <!-- Strategy 1 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0;">
+      <i class="fa-solid fa-industry fa-2x" style="color:#f59e0b; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">1. Industrial Filtering</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Installing high-grade scrubbers and filters on local factory smokestacks to catch particle emissions before they enter the air.</p>
+    </div>
+
+    <!-- Strategy 2 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.1s;">
+      <i class="fa-solid fa-car fa-2x" style="color:#38bdf8; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">2. Cleaner Transport</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Encouraging public transit, electric vehicles, and heavily restricting old diesel exhaust out of the main city zones.</p>
+    </div>
+
+    <!-- Strategy 3 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.2s;">
+      <i class="fa-solid fa-tree fa-2x" style="color:#22c55e; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">3. Urban Greenery</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Planting "green belts"—massive barriers of dense, leafy trees that naturally filter and absorb airborne particles.</p>
+    </div>
+
+    <!-- Strategy 4 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.3s;">
+      <i class="fa-solid fa-recycle fa-2x" style="color:#ec4899; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">4. Proper Waste Disposal</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Strictly banning open agricultural fires and trash burning, and enforcing proper recycling management instead.</p>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<!-- -------- HOSPITAL PAGE -------- -->
+<div id="hospitalPage" style="display:none;">
+
+<div class="box">
+  <h2><i class="fa-solid fa-bed-pulse" style="color: #ef4444;"></i> Hospital Data</h2>
+
+  <div class="filters small">
+    <select id="hospital"></select>
+    <select id="hospitalYear"></select>
+    <select id="hospitalMonth"></select>
+    <select id="hospitalDay"></select>
+    <button id="hospitalReset"><i class="fa-solid fa-rotate-right"></i> Reset</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Month</th>
+          <th>Day</th>
+          <th>Total Admissions</th>
+          <th>COPD & Asthma</th>
+          <th>Heart Disease (IHD)</th>
+          <th>Stroke Cases</th>
+          <th>Lung Cancer</th>
+          <th>Pneumonia</th>
+        </tr>
+      </thead>
+      <tbody id="hospitalData"></tbody>
+    </table>
+  </div>
+
+  <div class="map-container" style="margin-top: 15px; height: 250px; border-radius: 8px; overflow: hidden; border: 1px solid #334155;">
+    <iframe id="googleMap" width="100%" height="100%" frameborder="0" style="border:0" allowfullscreen></iframe>
+  </div>
+
+  <div class="box" style="margin-top: 30px;">
+    <h2><i class="fa-solid fa-truck-medical" style="color: #38bdf8;"></i> Hospital Cases Trend</h2>
+    <div class="canvas-container">
+      <canvas id="casesChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Disease Specific Explanations -->
+  <div class="box" style="margin-top: 30px;">
+    <h2><i class="fa-solid fa-notes-medical" style="color: #ef4444;"></i> How Pollution Causes These Diseases</h2>
+    <p style="font-size: 18px; line-height: 1.6;">
+      When we breathe in toxic smog and microscopic dust, it directly damages our body over time. Here is a simple breakdown of how air pollution leads to these specific illnesses:
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 25px;">
+      
+      <!-- COPD & Asthma -->
+      <div class="card" style="text-align: left; padding: 20px; margin: 0; border-left: 4px solid #38bdf8;">
+        <h3 style="margin-top:0; font-size: 18px; color: #38bdf8;">
+          <i class="fa-solid fa-lungs"></i> COPD & Asthma
+        </h3>
+        <p style="font-size: 14px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">
+          Toxic particles irritate the airways, causing them to swell and narrow. This makes breathing difficult and directly triggers painful asthma attacks and chronic lung damage.
+        </p>
+      </div>
+
+      <!-- Heart Disease -->
+      <div class="card" style="text-align: left; padding: 20px; margin: 0; animation-delay: 0.1s; border-left: 4px solid #ef4444;">
+        <h3 style="margin-top:0; font-size: 18px; color: #ef4444;">
+          <i class="fa-solid fa-heart-crack"></i> Heart Disease
+        </h3>
+        <p style="font-size: 14px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">
+          Pollution particles are so tiny they can enter the bloodstream. They cause inflammation in the blood vessels, forcing the heart to work much harder and increasing the risk of heart attacks.
+        </p>
+      </div>
+
+      <!-- Stroke -->
+      <div class="card" style="text-align: left; padding: 20px; margin: 0; animation-delay: 0.2s; border-left: 4px solid #a855f7;">
+        <h3 style="margin-top:0; font-size: 18px; color: #c084fc;">
+          <i class="fa-solid fa-brain"></i> Stroke Cases
+        </h3>
+        <p style="font-size: 14px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">
+          Just like with the heart, polluted blood can damage the vessels leading to the brain. This makes the blood more likely to clot, which can suddenly block oxygen to the brain and cause a stroke.
+        </p>
+      </div>
+
+      <!-- Lung Cancer -->
+      <div class="card" style="text-align: left; padding: 20px; margin: 0; animation-delay: 0.3s; border-left: 4px solid #facc15;">
+        <h3 style="margin-top:0; font-size: 18px; color: #facc15;">
+          <i class="fa-solid fa-disease"></i> Lung Cancer
+        </h3>
+        <p style="font-size: 14px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">
+          Many chemicals in heavy smog and factory smoke are carcinogenic (cancer-causing). Breathing them in for years damages lung cells, eventually causing tumors to grow.
+        </p>
+      </div>
+
+      <!-- Pneumonia -->
+      <div class="card" style="text-align: left; padding: 20px; margin: 0; animation-delay: 0.4s; border-left: 4px solid #22c55e;">
+        <h3 style="margin-top:0; font-size: 18px; color: #4ade80;">
+          <i class="fa-solid fa-viruses"></i> Pneumonia
+        </h3>
+        <p style="font-size: 14px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">
+          Since pollution damages the lung's natural defenses, harmful bacteria and viruses can easily take over. This makes people, especially children, much more likely to catch severe lung infections.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="box" style="margin-top: 30px;">
+  <h2><i class="fa-solid fa-lungs" style="color:#ef4444;"></i> Preventing Respiratory Diseases</h2>
+  <p style="font-size: 18px; line-height: 1.6;">
+    Protecting your lung health during times of high pollution is critical. Follow these four everyday strategies to stay safe:
+  </p>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px;">
+    
+    <!-- Strategy 1 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0;">
+      <i class="fa-solid fa-mask-ventilator fa-2x" style="color:#38bdf8; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">1. Wear N95 Masks</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Always wear high-quality particulate masks like N95 or KN95 when the AQI is dangerously high outside.</p>
+    </div>
+
+    <!-- Strategy 2 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.1s;">
+      <i class="fa-solid fa-house-medical fa-2x" style="color:#22c55e; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">2. Indoor Purifiers</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Use High-Efficiency Particulate Air (HEPA) purifiers indoors and keep your windows tightly shut on smoggy days.</p>
+    </div>
+
+    <!-- Strategy 3 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.2s;">
+      <i class="fa-solid fa-person-running fa-2x" style="color:#f59e0b; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">3. Avoid Heavy Exercise</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Do not jog or do heavy aerobic exercises outdoors when the air is visibly polluted, as this pulls toxic particles deep into your lungs.</p>
+    </div>
+
+    <!-- Strategy 4 -->
+    <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.3s;">
+      <i class="fa-solid fa-stethoscope fa-2x" style="color:#ec4899; margin-bottom:15px;"></i>
+      <h3 style="margin-top:0; font-size: 18px;">4. Routine Checkups</h3>
+      <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">If you have a history of asthma or coughing, visit your doctor regularly and always carry emergency inhalers just in case.</p>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<!-- -------- MODEL PAGE -------- -->
+<div id="modelPage" style="display:none;">
+  <div class="box">
+    <h2><i class="fa-solid fa-brain" style="color:#38bdf8;"></i> How Our Prediction Model Works</h2>
+    <p style="font-size: 18px; line-height: 1.6;">
+      Our system uses a smart 4-step workflow to predict what pollution and hospital crowds will look like in the future! Here is how we calculate it:
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 30px;">
+      
+      <!-- Step 1 -->
+      <div class="card" style="text-align: left; padding: 25px; margin: 0;">
+        <i class="fa-solid fa-calendar-days fa-2x" style="color:#38bdf8; margin-bottom:15px;"></i>
+        <h3 style="margin-top:0; font-size: 18px;">1. Monthly Patterns</h3>
+        <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">We start with basic pollution numbers depending on the month. For example, winter naturally traps more smog!</p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.1s;">
+        <i class="fa-solid fa-seedling fa-2x" style="color:#22c55e; margin-bottom:15px;"></i>
+        <h3 style="margin-top:0; font-size: 18px;">2. Future Growth</h3>
+        <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Because factories and traffic multiply over time, our model adds a small pollution penalty to every future year.</p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.2s;">
+        <i class="fa-solid fa-cloud-sun fa-2x" style="color:#f59e0b; margin-bottom:15px;"></i>
+        <h3 style="margin-top:0; font-size: 18px;">3. Daily Weather</h3>
+        <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Since weather shifts every day, we add realistic random fluctuations so no two days look exactly the same.</p>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="card" style="text-align: left; padding: 25px; margin: 0; animation-delay: 0.3s;">
+        <i class="fa-solid fa-truck-medical fa-2x" style="color:#ef4444; margin-bottom:15px;"></i>
+        <h3 style="margin-top:0; font-size: 18px;">4. Hospital Impact</h3>
+        <p style="font-size: 15px; color:#cbd5e1; line-height: 1.5; margin-bottom:0;">Finally, we take the day's total pollution and multiply it by a hospital's size factor to estimate incoming patients.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="box" style="margin-top: 30px;">
+    <h2><i class="fa-solid fa-microchip" style="color:#a855f7;"></i> Behind the Scenes: The Algorithm</h2>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+      
+      <div class="card" style="text-align: left; padding: 25px; margin: 0; border-left: 4px solid #a855f7;">
+        <h3 style="margin-top:0; font-size: 20px; color: #c084fc;">
+          <i class="fa-solid fa-chart-line"></i> Time Series & Linear Forecasting
+        </h3>
+        <p style="font-size: 16px; color:#cbd5e1; line-height: 1.6; margin-bottom:0;">
+          Our backend relies on mathematical concepts closely related to <strong>Linear Regression</strong> and <strong>Time Series Forecasting</strong>. But what does that mean? In simple terms, it takes known patterns—like the fact that winter traps more smog, and vehicle emissions grow predictably every year—and draws highly accurate mathematical "trend lines" into the future.
+          <br><br>
+          <i class="fa-solid fa-calculator" style="color:#38bdf8;"></i> &nbsp;<strong>How it works:</strong> The algorithm uses a linear equation to calculate strict, year-over-year pollution growth. Then, it strategically layers a complex "sine wave" on top to replicate natural seasonal shifts. Finally, it injects carefully calculated random variance to mimic sudden, unpredictable weather events.
+          <br><br>
+          <i class="fa-solid fa-bullseye" style="color:#22c55e;"></i> &nbsp;<strong>Why we use it:</strong> The primary goal of this algorithm is to anticipate massive pollution events before they arrive. By tracing these mathematical trends, local city hospitals can view the forecast and instantly prepare enough beds and medical supplies on the exact days our model predicts a dangerous spike in lung and heart disease!
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

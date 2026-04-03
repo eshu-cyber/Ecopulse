@@ -1,0 +1,17 @@
+services:
+  # Python Backend Service
+  - type: web
+    name: pollution-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    rootDir: Backend
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+
+  # Static Frontend Site
+  - type: static
+    name: pollution-frontend
+    env: static
+    rootDir: Frontend

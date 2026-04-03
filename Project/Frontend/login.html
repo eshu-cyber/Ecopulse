@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - EcoPulse Health and Pollution Predictor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css?v=3">
+<style>
+/* Inline additions for the login container */
+.auth-container {
+    max-width: 400px;
+    margin: 80px auto;
+}
+@media (max-width: 480px) {
+    .auth-container {
+        max-width: 90%;
+        margin: 40px auto;
+    }
+}
+.auth-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.auth-box input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    box-sizing: border-box;
+    font-size: 16px;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+}
+body.clean .auth-box input {
+    background: rgba(0,0,0,0.05);
+}
+.toggle-auth {
+    text-align: center;
+    margin-top: 15px;
+    cursor: pointer;
+    color: #38bdf8;
+    text-decoration: underline;
+    font-size: 14px;
+}
+.error-msg {
+    color: #ef4444; 
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 10px;
+    min-height: 20px;
+}
+h1.auth-title {
+    color: white; 
+    -webkit-text-fill-color: initial; 
+    background: none;
+}
+body.clean h1.auth-title {
+    color: #0f172a;
+}
+</style>
+</head>
+<body>
+
+<div class="main auth-container">
+    <div class="box">
+        <h1 id="authTitle" class="auth-title">Sign In</h1>
+        <div id="errorMsg" class="error-msg"></div>
+        <div class="auth-box">
+            <input type="text" id="username" placeholder="Username" style="display: none;">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="authBtn" style="padding: 12px; font-size: 16px;">Sign In</button>
+        </div>
+        <div class="toggle-auth" id="toggleAuthMode">Need an account? Sign Up</div>
+    </div>
+</div>
+
+<script type="module" src="login.js"></script>
+</body>
+</html>
